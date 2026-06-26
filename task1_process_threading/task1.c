@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -5,13 +7,18 @@
 int counter = 0;
 pthread_mutex_t lock;
 
-/* Thread function */
+/* Thread function for demonstrating multithreading and synchronization */
 void *work(void *arg)
 {
     int id = *(int *)arg;
 
-    for(int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
+        /*
+         * Mutex lock is used before updating the shared counter.
+         * This prevents race condition because only one thread
+         * can enter this critical section at a time.
+         */
         pthread_mutex_lock(&lock);
 
         counter++;
@@ -23,6 +30,51 @@ void *work(void *arg)
     }
 
     return NULL;
+}
+
+/* Simple Round Robin scheduling simulation */
+void round_robin_scheduler()
+{
+    int n = 3;
+    int time_quantum = 2;
+
+    int process_id[] = {1, 2, 3};
+    int burst_time[] = {5, 4, 6};
+    int remaining_time[] = {5, 4, 6};
+
+    int time = 0;
+    int completed = 0;
+
+    printf("\nRound Robin Scheduling Simulation\n");
+    printf("Time Quantum = %d units\n\n", time_quantum);
+
+    while (completed < n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            if (remaining_time[i] > 0)
+            {
+                if (remaining_time[i] > time_quantum)
+                {
+                    time += time_quantum;
+                    remaining_time[i] -= time_quantum;
+
+                    printf("Process P%d executed for %d units. Remaining time = %d\n",
+                           process_id[i], time_quantum, remaining_time[i]);
+                }
+                else
+                {
+                    time += remaining_time[i];
+
+                    printf("Process P%d executed for %d units. Process completed at time %d\n",
+                           process_id[i], remaining_time[i], time);
+
+                    remaining_time[i] = 0;
+                    completed++;
+                }
+            }
+        }
+    }
 }
 
 int main()
@@ -48,7 +100,14 @@ int main()
     pthread_mutex_destroy(&lock);
 
     printf("\nAll threads finished.\n");
-    printf("Final Counter Value = %d\n", counter);
+
+    /*
+     * Deadlock prevention:
+     * The program uses only one mutex and unlocks it immediately
+     * after the critical section. Therefore, circular waiting does
+     * not occur and deadlock is avoided.
+     */
+    round_robin_scheduler();
 
     return 0;
 }
