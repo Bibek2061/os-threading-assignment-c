@@ -16,6 +16,7 @@ void *work(void *arg)
     {
         /*
          * Mutex lock is used before updating the shared counter.
+
          * This prevents race condition because only one thread
          * can enter this critical section at a time.
          */
